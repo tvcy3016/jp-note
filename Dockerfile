@@ -1,7 +1,6 @@
-FROM php:8.3-fpm-bookworm
+FROM php:8.4-cli
 
 WORKDIR /var/www/html
-
 COPY . .
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT} -t /var/www/html/public"]
