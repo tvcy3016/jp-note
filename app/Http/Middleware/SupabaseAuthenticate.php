@@ -14,7 +14,7 @@ class SupabaseAuthenticate
      */
     public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
-        if (!$request->session()->has('supabase.access_token')) {
+        if (! $request->session()->has('supabase_user')) {
             return redirect()->route('login');
         }
 
