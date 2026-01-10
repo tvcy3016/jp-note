@@ -8,9 +8,24 @@ class Note extends Model
 {
     protected $fillable = [
         'user_id',
+        'note_type',
         'title',
         'content',
-        'note_type',
+
+        // vocabulary
+        'reading',
+        'meaning',
+
+        // grammar
+        'usage',
+        'example',
+
+        // mistake
+        'question',
+        'answer',
+        'explanation',
+        'difficulty',
     ];
+
 }
 

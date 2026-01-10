@@ -12,16 +12,21 @@ class NoteController extends Controller
      */
     public function index(Request $request)
     {
-        // 目前先用 session 的 user_id（你已經決定先保留）
-        $userId = session('user_id');
+        $latestNotes = Note::latest()
+            ->where('user_id', session('supabase_user.id'))
+            ->take(5)
+            ->get();
 
-        $notes = Note::where('user_id', $userId)
+        $notes = Note::where('user_id', session('supabase_user.id'))
+            ->when($request->type, function ($q) use ($request) {
+                $q->where('note_type', $request->type);
+            })
             ->latest()
             ->get();
 
-        // 沒資料是正常狀態，view 自己處理顯示
-        return view('notes.index', compact('notes'));
+        return view('notes.index', compact('latestNotes', 'notes'));
     }
+
 
     /**
      * 顯示新增筆記頁
@@ -36,22 +41,33 @@ class NoteController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'title'   => 'required|string|max:255',
-            'content' => 'nullable|string',
+        $data = $request->only([
+            'note_type',
+            'title',
+            'content',
+
+            // vocabulary
+            'reading',
+            'meaning',
+
+            // grammar
+            'usage',
+            'example',
+
+            // mistake
+            'question',
+            'answer',
+            'explanation',
+            'difficulty',
         ]);
 
-        Note::create([
-            'user_id'   => session('user_id'),
-            'title'     => $request->title,
-            'content'   => $request->content,
-            'note_type' => 'normal',
-        ]);
+        $data['user_id'] = session('supabase_user.id');
 
-        return redirect()
-            ->route('notes.index')
-            ->with('success', '筆記已新增');
+        Note::create($data);
+
+        return redirect()->route('notes.index');
     }
+
 
     /**
      * 顯示編輯頁
@@ -59,7 +75,7 @@ class NoteController extends Controller
     public function edit(Note $note)
     {
         // 簡單防呆：不是自己的筆記就擋
-        if ($note->user_id !== session('user_id')) {
+        if ($note->user_id !== session('supabase_user.id')) {
             abort(403);
         }
 
@@ -71,31 +87,38 @@ class NoteController extends Controller
      */
     public function update(Request $request, Note $note)
     {
-        if ($note->user_id !== session('user_id')) {
-            abort(403);
-        }
+        $data = $request->only([
+            'note_type',
+            'title',
+            'content',
 
-        $request->validate([
-            'title'   => 'required|string|max:255',
-            'content' => 'nullable|string',
+            // vocabulary
+            'reading',
+            'meaning',
+
+            // grammar
+            'usage',
+            'example',
+
+            // mistake
+            'question',
+            'answer',
+            'explanation',
+            'difficulty',
         ]);
 
-        $note->update([
-            'title'   => $request->title,
-            'content' => $request->content,
-        ]);
+        $note->update($data);
 
-        return redirect()
-            ->route('notes.index')
-            ->with('success', '筆記已更新');
+        return redirect()->route('notes.index');
     }
+
 
     /**
      * 刪除筆記
      */
     public function destroy(Note $note)
     {
-        if ($note->user_id !== session('user_id')) {
+        if ($note->user_id !== session('supabase_user.id')) {
             abort(403);
         }
 
