@@ -15,16 +15,28 @@
 
   {{-- 上方導覽（可先留空） --}}
 <nav class="navbar navbar-light bg-light mb-4">
-  <div class="container d-flex justify-content-between">
+  <div class="container d-flex justify-content-between align-items-center">
     <span class="navbar-brand mb-0 h1">JP-Note</span>
 
     @if (session()->has('supabase_user'))
-      <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit" class="btn btn-outline-secondary btn-sm">
-          登出
-        </button>
-      </form>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('notes.index') }}" class="btn btn-outline-secondary btn-sm">
+          我的筆記
+        </a>
+        <a href="{{ route('questions.index') }}" class="btn btn-outline-secondary btn-sm">
+          題庫
+        </a>
+        <a href="{{ route('review.show') }}" class="btn btn-outline-secondary btn-sm">
+          複習
+        </a>
+
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit" class="btn btn-outline-secondary btn-sm">
+            登出
+          </button>
+        </form>
+      </div>
     @endif
   </div>
 </nav>
