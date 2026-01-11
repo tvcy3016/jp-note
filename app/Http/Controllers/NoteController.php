@@ -12,11 +12,6 @@ class NoteController extends Controller
      */
     public function index(Request $request)
     {
-        $latestNotes = Note::latest()
-            ->where('user_id', session('supabase_user.id'))
-            ->take(5)
-            ->get();
-
         $notes = Note::where('user_id', session('supabase_user.id'))
             ->when($request->type, function ($q) use ($request) {
                 $q->where('note_type', $request->type);
@@ -24,7 +19,7 @@ class NoteController extends Controller
             ->latest()
             ->get();
 
-        return view('notes.index', compact('latestNotes', 'notes'));
+        return view('notes.index', compact('notes'));
     }
 
 
@@ -68,6 +63,17 @@ class NoteController extends Controller
         return redirect()->route('notes.index');
     }
 
+    /**
+     * 顯示筆記內容
+     */
+    public function show(Note $note)
+    {
+        if ($note->user_id !== session('supabase_user.id')) {
+            abort(403);
+        }
+
+        return view('notes.show', compact('note'));
+    }
 
     /**
      * 顯示編輯頁
