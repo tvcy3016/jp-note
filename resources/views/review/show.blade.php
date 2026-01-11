@@ -49,6 +49,12 @@
               @endif
 
               <p class="mb-0"><strong>複習程度：</strong>{{ $question->review_level }}</p>
+
+              @if ($question->note)
+                <a href="{{ route('notes.edit', $question->note) }}" class="btn btn-link p-0 mt-2">
+                  查看關聯筆記
+                </a>
+              @endif
             </div>
           </div>
         </div>
