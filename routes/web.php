@@ -52,5 +52,6 @@ Route::middleware('supabase.auth')->group(function () {
     Route::put('/questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
     Route::delete('/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
 
-    Route::get('/review', [ReviewController::class, 'show'])->name('review.show');
+    Route::get('/review', [ReviewController::class, 'index'])->name('review.index');
+    Route::put('/review/{question}', [ReviewController::class, 'update'])->name('review.update');
 });

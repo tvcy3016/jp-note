@@ -26,7 +26,7 @@
         <a href="{{ route('questions.index') }}" class="btn btn-outline-secondary btn-sm">
           題庫
         </a>
-        <a href="{{ route('review.show') }}" class="btn btn-outline-secondary btn-sm">
+        <a href="{{ route('review.index') }}" class="btn btn-outline-secondary btn-sm">
           複習
         </a>
 
