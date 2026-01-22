@@ -12,6 +12,7 @@ class Question extends Model
     protected $fillable = [
         'user_id',
         'note_id',
+        'parent_id',
         'question_type',
         'question_text',
         'answer_text',
@@ -33,5 +34,17 @@ class Question extends Model
     public function note()
     {
         return $this->belongsTo(Note::class);
+    }
+    
+    // 建立關聯：這題的「原題」
+    public function parent()
+    {
+        return $this->belongsTo(Question::class, 'parent_id');
+    }
+
+    // 建立關聯：這題生出的「變體們」
+    public function variants()
+    {
+        return $this->hasMany(Question::class, 'parent_id');
     }
 }

@@ -4,10 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Note;
 use App\Models\Question;
+use App\Services\GeminiService; // 引入 AI 服務
 use Illuminate\Http\Request;
 
 class QuestionController extends Controller
 {
+    protected $geminiService;
+
+    // 注入 GeminiService
+    public function __construct(GeminiService $geminiService)
+    {
+        $this->geminiService = $geminiService;
+    }
+
     /**
      * 題庫列表
      */
@@ -16,9 +25,54 @@ class QuestionController extends Controller
         $questions = Question::with('note')
             ->where('user_id', session('supabase_user.id'))
             ->latest()
-            ->get();
+            ->paginate(10); // 修正：使用分頁 (原本是 get())
 
         return view('questions.index', compact('questions'));
+    }
+
+    /**
+     * AI 生成變體題目 (Phase 3 核心功能)
+     */
+    public function generateVariant(Request $request, Question $question)
+    {
+        // 1. 安全檢查
+        if ($question->user_id !== session('supabase_user.id')) {
+            abort(403);
+        }
+
+        // 2. 準備上下文
+        $noteContent = $question->note ? $question->note->content : '';
+
+        // 3. 呼叫 AI
+        $variantData = $this->geminiService->generateVariant(
+            $question->question_text,
+            $question->answer_text,
+            $noteContent
+        );
+
+        if (!$variantData) {
+            return back()->with('error', 'AI 生成失敗，請稍後再試。');
+        }
+
+        // 4. 存入新題目
+        Question::create([
+            'user_id' => $question->user_id,
+            'note_id' => $question->note_id,
+            'parent_id' => $question->id, // 標記來源題目
+            'question_type' => $question->question_type,
+            'question_text' => $variantData['question_text'],
+            'answer_text' => $variantData['answer_text'],
+            'choices' => $variantData['choices'] ?? [],
+            'explanation' => $variantData['explanation'] ?? null,
+            // SRS 初始狀態
+            'ease_factor' => 2.5,
+            'interval_days' => 0,
+            'repetitions' => 0,
+            'next_review_at' => now(),
+        ]);
+
+        return redirect()->route('questions.index')
+            ->with('status', '✨ AI 變形題目已生成！');
     }
 
     /**
