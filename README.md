@@ -1,148 +1,83 @@
 # JP-Note
 
-JP-Note 是一個**個人用的日語學習筆記與複習系統**，  
-核心目標是協助整理「單字、文法、錯題」，並建立可持續複習的學習流程。
-
-本專案以 **理解導向學習** 為設計原則，  
-不追求大量刷題、不強制背誦。
-
-目前專案已完成 **v0.1 MVP（筆記管理）**，  
-並準備進入 **v0.2（題庫管理與手動出題）** 階段。
+這是一個結合「個人筆記」與「AI 智慧練習」的複習系統。透過 **Gemini 1.5 Flash** 進行題目變形，並利用 **間隔重複 (SRS)** 演算法（基於 SM-2）優化長期記憶效率，解決「死背答案」的問題。
 
 ---
 
-## 專案定位
+## 🚀 目前開發進度 (Current Status)
 
-- 個人使用（不考慮多人協作）
-- MVP 優先、不過度工程
-- 先好用，再談自動化（SRS / AI 皆為後期）
+> **版本狀態：v0.2.1 (Phase 2 完成 - SRS 核心已實裝)**
+>
+> 目前系統已具備完整的筆記 CRUD、題庫管理以及基於科學記憶法的複習功能。
+> **下一步 (Next Step)：** 串接 Gemini API 實作題目 AI 變形功能。
 
----
+### ✅ 已完成功能
+- [x] **使用者系統**：Supabase Auth 整合 (Login/Register)。
+- [x] **筆記管理**：Markdown 編輯、標籤系統、CRUD。
+- [x] **題庫系統**：題目與筆記關聯、支援單選/填空題。
+- [x] **複習核心 (SRS)**：
+    - 實作 SM-2 演算法變體 (SRSService)。
+    - 支援 `Ease Factor`、`Interval`、`Next Review` 自動計算。
+    - 複習介面優化（抽認卡 Flashcard 風格）。
+    - 支援繁體中文人性化時間顯示（如：30分鐘後、明天）。
 
-## Features
-
-### 已完成（v0.1）
-
-- 日語筆記管理
-  - 單字（vocabulary）
-  - 文法（grammar）
-  - 錯題（mistake）
-- 單表設計（notes）
-- 新增 / 編輯 / 刪除筆記
-- 依筆記類型動態顯示欄位
-- 登入 / 登出（Supabase Auth）
-- 使用者筆記存取權限控管（user_id）
-
----
-
-### 規劃中（v0.2）
-
-- 題庫管理（手動出題）
-- 題目與筆記關聯（特別是 mistake 類型）
-- 基礎作答紀錄（僅蒐集資料，不做排程）
-- 為未來 SRS 預留資料結構（不實作演算法）
-
-> v0.2 不包含 AI、不包含自動複習排程
+### 🚧 開發中 (Coming Soon)
+- [ ] **AI 變形引擎**：串接 Gemini 1.5 Flash 生成變體題目。
+- [ ] **學習儀表板**：視覺化學習熱點圖與答題歷史記錄。
+- [ ] **Livewire 優化**：將複習流程改為異步操作，提升體驗。
 
 ---
 
-## Tech Stack
+## 🛠 技術架構 (Tech Stack)
 
-### Backend
-
-- Laravel 12
-- PHP 8.4
-- PostgreSQL（Supabase）
-
----
-
-### Auth / Database
-
-- Supabase Auth
-- Supabase PostgreSQL
-- Laravel Session 儲存登入狀態
-- Middleware：`supabase.auth`
+- **Backend framework**: PHP 8.4 / Laravel 12
+- **Database**: PostgreSQL (via Supabase)
+- **Authentication**: Supabase Auth
+- **AI Engine**: Google Gemini 1.5 Flash (Planning)
+- **Frontend**: Blade Templates + Bootstrap 5 + Alpine.js
+- **Deployment**: Google Cloud Run (Target)
 
 ---
 
-### Frontend
+## 📂 資料庫關鍵設計 (Database Schema)
 
-- Blade Templates
-- Bootstrap（Card-based UI）
-- Vite（僅負責前端資產編譯）
+目前主要資料表結構如下：
 
----
-
-### Container / Runtime
-
-- Docker（僅封裝 PHP / Laravel）
-- 本機開發使用 Docker
-- 不在 Docker 內執行 npm / Vite
-- Container 監聽 `$PORT`（可相容 Serverless 環境）
+- **users**: 系統使用者 (同步 Supabase Auth)。
+- **notes**: 學習筆記，儲存 Markdown 內容與標籤。
+- **questions**: 題庫核心。
+    - `question_text`, `answer_text`, `choices` (JSON)
+    - **SRS 欄位**: `ease_factor`, `interval_days`, `repetitions`, `next_review_at`
 
 ---
 
-## Database Design (Current)
+## ⚙️ 安裝與執行 (Local Setup)
 
-### notes（單表設計）
+1. **Clone 專案**
+   ```bash
+   git clone <repo-url>
+   cd jp-note
+   ```
+2. **安裝依賴**
+  ```bash
+  composer install
+  npm install && npm run build
+  ```
+3. **環境設定 (.env) 請複製 .env.example 並填入 Supabase Credentials**
+  ```bash
+  SUPABASE_URL=your_supabase_url
+  SUPABASE_KEY=your_supabase_anon_key
+  DB_CONNECTION=pgsql
 
-共用欄位：
-
-- id
-- user_id
-- note_type（vocabulary / grammar / mistake）
-- title
-- content
-- timestamps
-
-#### vocabulary
-
-- reading
-- meaning
-
-#### grammar
-
-- usage
-- example
-
-#### mistake
-
-- question
-- answer
-- explanation
-- difficulty
-
----
-
-## Local Development
-
-### Prerequisites
-
-- Docker
-- Git
-- Node.js（僅用於前端資產）
-
-> 本機不需安裝 PHP / Composer
-
----
-
-### Build Docker image
-```bash
-docker build -t jp-note .
-```
-
-### Run container
-```bash
-docker run -d -p 8080:8080 -e PORT=8080 jp-note
-```
-
-### Open in browser
-```bash
-http://localhost:8080
-```
-
-### Frontend Assets（Vite）
-```bash
-npm install
-npm run dev
-```
+  # ... 其他資料庫連線設定
+  # 時區設定
+  APP_TIMEZONE='Asia/Taipei'
+  ```
+4. **資料庫遷移**
+  ```bash
+  php artisan migrate
+  ```
+5. **啟動伺服器**
+  ```bash
+  php artisan serve
+  ```
